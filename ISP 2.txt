@@ -1,0 +1,180 @@
+# vlans inrichten voor switch #
+
+en
+conf t
+vlan 10
+name P&O
+vlan 20
+name Administratie
+vlan 30
+name Docenten
+vlan 99
+name Management/Native
+
+# ip address op vlans zetten #
+
+int vlan 10
+ip address 10.10.10.1 255.255.255.192
+no shutdown
+ip default-gateway 10.10.10.62
+int vlan 20
+ip address 10.10.10.65 255.255.255.192
+no shutdown
+ip default-gateway 10.10.10.126
+int vlan 30
+ip address 10.10.10.129 255.255.255.192
+no shutdown
+ip default-gateway 10.10.10.190
+int vlan 99
+ip address 10.10.10.193 255.255.255.192
+no shutdown
+ip default-gateway 10.10.10.254
+
+# vlan voor de router #
+
+en
+conf t
+interface g0/0.10
+description P&O Network
+encapsulation dot1q 10
+ip address 10.10.10.1 255.255.255.192
+interface g0/0.20
+description Administratie Network
+encapsulation dot1q 20
+ip address 10.10.10.65 255.255.255.192
+interface g0/0.30
+description Docenten Network
+encapsulation dot1q 30
+ip address 10.10.10.129 255.255.255.192
+interface g0/0.99
+description Management/Native Network
+encapsulation dot1q 99
+ip address 10.10.10.193 255.255.255.192
+
+ip dhcp excluded-address 10.0.0.1 10.0.0.10
+
+
+int vlan 10
+ip dhcp excluded-address 10.10.10.1 
+ip dhcp excluded-address 10.10.10.62
+ip dhcp pool vPool10 
+network 10.10.10.0 255.255.255.192
+default-router 10.10.10.62
+dns-server 4.4.4.4
+
+router ospf 10
+router-id 1.1.1.1
+passive-interface g0/0
+network 11.1.1.0 0.0.0.3 area 0
+network 11.1.1.8 0.0.0.3 area 0
+network 192.168.10.1  0.0.0.255 area 0
+
+
+
+router ospf 10
+router-id 3.3.3.3
+passive-interface g0/0
+network 11.1.1.8 0.0.0.3 area 0
+network 11.1.1.4 0.0.0.3 area 0
+network 192.168.11.1  0.0.0.255 area 0
+
+
+
+router ospf 10
+router-id 2.2.2.2 
+passive-interface g0/0
+network 11.1.1.0 0.0.0.3 area 0
+network 11.1.1.4 0.0.0.3 area 0
+network 10.10.10.0 0.0.0.255 area 0
+
+
+
+
+
+int f0/5
+switchport mode access
+switchport access vlan 10
+
+int g0/1
+switchport trunk encapsulation dot1q
+switchport mode trunk
+
+int f0/2
+switchport trunk encapsulation dot1q
+switchport mode trunk
+
+int f0/1
+switchport trunk encapsulation dot1q
+switchport mode trunk
+
+int f0/3
+switchport trunk encapsulation dot1q
+switchport mode trunk
+
+
+
+#static routing#
+
+ip route (network-address) (subnet-mask) (next-hop ip address / exit interface)
+
+# ospf op een router #
+
+router ospf 1
+do show ip route c(onnected)
+network 192.168.10.0 0.0.0.255 area 0
+default-information originate
+
+
+network 10.2.0.0 0.0.0.255 area 0
+network 10.3.0.0 0.0.0.255 area 0
+network 10.4.0.0 0.0.0.31 area 0
+network 0.0.0.0 0.0.0.0 area 0
+network 192.168.10.0 0.0.0.255 area 0
+
+
+
+
+#Multilayer switch
+
+Switch MLS
+
+# VLAN Toevoegen #
+vlan 10
+vlan 20
+vlan 30
+
+# Trunk configureren 
+
+interface fastEthernet 0/1
+Switchport trunk encapsulation do1q
+switchport mode trunk
+
+
+
+#Toewijzen VLAN aan de interfaces#
+
+interface vlan 10
+
+ip address (x.x.x.x) (x.x.x.x)
+
+
+
+#schakelen van routiing op Multilayer Switch#
+
+ip routing
+
+
+#Switch configureren#
+
+interface fastEthernet 0/1
+Switchport mode trunk
+
+# VLAN toevoegen op de switch#
+Vlan 10
+vlan 20
+
+#Toewijzen VLAN aan de interfaces#
+ interface fastEthernet 0/2
+switchport mode access
+switchport access vlan 10
+
